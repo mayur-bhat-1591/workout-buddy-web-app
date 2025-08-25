@@ -6,6 +6,7 @@ import SplashScreen from './components/SplashScreen';
 import DemoModeToggle from './components/DemoModeToggle';
 import HomeScreen from './screens/HomeScreen';
 import EquipmentDetectionScreen from './screens/EquipmentDetectionScreen';
+import WorkoutScreen from './screens/WorkoutScreen';
 import WorkoutSessionScreen from './screens/WorkoutSessionScreen';
 import PersonalTrackerScreen from './screens/PersonalTrackerScreen';
 import WorkoutCompleteScreen from './components/WorkoutCompleteScreen';
@@ -47,49 +48,24 @@ const App: React.FC = () => {
   }), []);
 
   const handleNavigate = useCallback((screen: string) => {
-    if (screen === 'workout' && !workoutFlowState.equipmentAnalysis) {
-      // Redirect to equipment detection if no equipment has been analyzed
-      setCurrentScreen('detection');
-      return;
-    }
+    // For audio-first platform, allow direct workout access
+    // Equipment will be checked within the workout flow
+    console.log('🧭 Navigating to screen:', screen);
     setCurrentScreen(screen as Screen);
-  }, [workoutFlowState.equipmentAnalysis]);
+  }, []);
 
   const handleEquipmentAnalyzed = useCallback(async (analysis: EquipmentAnalysis) => {
     console.log('🎯 Equipment analyzed:', analysis);
     setWorkoutFlowState(prev => ({ ...prev, equipmentAnalysis: analysis }));
     
-    // Auto-generate workout plan
-    console.log('🏋️ Starting workout plan generation...');
-    setIsGeneratingWorkout(true);
-    try {
-      console.log('📋 Calling GroqService with:', { equipment: analysis.equipment, userProfile: defaultUserProfile });
-      const workoutResponse = await GroqService.generateWorkoutPlan(
-        analysis.equipment,
-        defaultUserProfile
-      );
+    // For equipment detection screen, just store the analysis
+    // Workout generation will be handled by WorkoutScreen
+  }, []);
 
-      console.log('📊 Groq response:', workoutResponse);
-
-      if (workoutResponse.success) {
-        console.log('✅ Workout plan generated successfully:', workoutResponse.data);
-        setWorkoutFlowState(prev => ({ 
-          ...prev, 
-          workoutPlan: workoutResponse.data 
-        }));
-        setCurrentScreen('session'); // Automatically move to workout session
-      } else {
-        console.error('❌ Failed to generate workout plan:', workoutResponse.error);
-        alert(`Failed to generate workout plan: ${workoutResponse.error}`);
-      }
-    } catch (error) {
-      console.error('💥 Error generating workout plan:', error);
-      alert(`Error generating workout plan: ${error}`);
-    } finally {
-      setIsGeneratingWorkout(false);
-      console.log('🏁 Workout generation process completed');
-    }
-  }, [defaultUserProfile]);
+  const handleWorkoutPlanReady = useCallback((plan: WorkoutPlan) => {
+    console.log('📋 Workout plan ready:', plan);
+    setWorkoutFlowState(prev => ({ ...prev, workoutPlan: plan }));
+  }, []);
 
   const handleWorkoutComplete = useCallback((result: any) => {
     setWorkoutFlowState(prev => ({
@@ -116,6 +92,8 @@ const App: React.FC = () => {
       );
     }
 
+    console.log('🖥️ Rendering screen:', currentScreen);
+    
     switch (currentScreen) {
       case 'home':
         return <HomeScreen onNavigate={handleNavigate} />;
@@ -124,6 +102,7 @@ const App: React.FC = () => {
         return (
           <EquipmentDetectionScreen 
             onEquipmentAnalyzed={handleEquipmentAnalyzed}
+            onNavigate={handleNavigate}
           />
         );
       
@@ -149,21 +128,32 @@ const App: React.FC = () => {
           <WorkoutSessionScreen
             workoutPlan={workoutFlowState.workoutPlan}
             onWorkoutComplete={handleWorkoutComplete}
+            onNavigate={handleNavigate}
+          />
+        );
+      
+      case 'workout':
+        return (
+          <WorkoutScreen 
+            onNavigate={handleNavigate}
+            onWorkoutPlanReady={handleWorkoutPlanReady}
           />
         );
       
       case 'progress':
-        return <PersonalTrackerScreen />;
+        return <PersonalTrackerScreen onNavigate={handleNavigate} />;
       
       case 'complete':
-        if (!workoutFlowState.sessionResult) {
-          setCurrentScreen('home');
-          return null;
-        }
         return (
           <WorkoutCompleteScreen
-            sessionResult={workoutFlowState.sessionResult}
-            completionMessage={workoutFlowState.completionMessage}
+            sessionResult={workoutFlowState.sessionResult || {
+              completed: true,
+              audioPlaybackMinutes: 45,
+              targetMinutes: 45,
+              completionPercentage: 100,
+              date: new Date().toISOString().split('T')[0]
+            }}
+            completionMessage={workoutFlowState.completionMessage || 'Great workout!'}
             onContinue={handleContinueFromComplete}
           />
         );

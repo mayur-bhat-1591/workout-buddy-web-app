@@ -5,16 +5,16 @@ export class DemoDataGenerator {
   private static readonly DEMO_KEY = 'workoutbuddy_demo_mode';
   
   static isDemoMode(): boolean {
-    return localStorage.getItem(this.DEMO_KEY) === 'true';
+    return localStorage.getItem(DemoDataGenerator.DEMO_KEY) === 'true';
   }
   
   static enableDemoMode(): void {
-    localStorage.setItem(this.DEMO_KEY, 'true');
-    this.generateDemoData();
+    localStorage.setItem(DemoDataGenerator.DEMO_KEY, 'true');
+    DemoDataGenerator.generateDemoData();
   }
   
   static disableDemoMode(): void {
-    localStorage.removeItem(this.DEMO_KEY);
+    localStorage.removeItem(DemoDataGenerator.DEMO_KEY);
     // Clear demo data
     localStorage.removeItem('workoutbuddy_daily_progress');
     localStorage.removeItem('workoutbuddy_user_stats');

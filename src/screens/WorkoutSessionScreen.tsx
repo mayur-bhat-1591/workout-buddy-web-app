@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Square, Volume2, VolumeX, SkipForward, Clock, Target } from 'lucide-react';
+import { Play, Pause, Square, Volume2, VolumeX, SkipForward, Clock, Target, ArrowLeft } from 'lucide-react';
 import { useWorkout } from '../contexts/WorkoutContext';
 import { useProgress } from '../contexts/ProgressContext';
 import GroqService from '../services/GroqService';
@@ -11,11 +11,13 @@ import { formatTime } from '../utils/dateUtils';
 interface WorkoutSessionScreenProps {
   workoutPlan: WorkoutPlan;
   onWorkoutComplete: (result: any) => void;
+  onNavigate?: (screen: string) => void;
 }
 
 const WorkoutSessionScreen: React.FC<WorkoutSessionScreenProps> = ({
   workoutPlan,
   onWorkoutComplete,
+  onNavigate,
 }) => {
   const { currentWorkout, audioProgress, updateProgress } = useWorkout();
   const { updateDailyProgress } = useProgress();
@@ -219,10 +221,26 @@ const WorkoutSessionScreen: React.FC<WorkoutSessionScreenProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 space-y-6 pb-24">
+      {/* Mobile Navigation Header */}
+      {onNavigate && (
+        <div className="flex items-center justify-between py-4">
+          <button
+            onClick={() => onNavigate('workout')}
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <ArrowLeft size={24} />
+            <span className="text-sm font-medium">Back</span>
+          </button>
+          
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Workout Session</h2>
+          <div className="w-16"></div> {/* Spacer for center alignment */}
+        </div>
+      )}
+
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Workout in Progress
         </h1>
         <p className="text-lg text-gray-600 dark:text-gray-400">

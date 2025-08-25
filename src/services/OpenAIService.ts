@@ -15,37 +15,28 @@ class OpenAIService {
 
   async analyzeEquipmentVideo(videoFrames: string[]): Promise<ApiResponse<EquipmentAnalysis>> {
     try {
-      // Check if API is configured
-      if (!this.isConfigured()) {
-        console.warn('OpenAI API not configured, using mock data');
+      console.log('Starting OpenAI video analysis with', videoFrames.length, 'frames');
+      
+      // Check if API key is configured
+      if (!API_CONFIG.OPENAI.API_KEY) {
+        console.warn('OpenAI API key not configured, using mock data');
         return {
           success: true,
           data: this.createMockAnalysis(),
         };
       }
 
-      console.log('Starting OpenAI video analysis with', videoFrames.length, 'frames');
-      
-      // Test API connection first with a simple request
-      try {
-        const testResponse = await this.client.chat.completions.create({
-          model: 'gpt-4o-mini', // Use cheaper model for testing
-          messages: [
-            {
-              role: 'user',
-              content: 'Test connection. Respond with "OK".',
-            },
-          ],
-          max_tokens: 10,
-        });
-        console.log('OpenAI API connection test successful:', testResponse.choices[0].message.content);
-      } catch (testError) {
-        console.warn('OpenAI API connection test failed, using mock data:', testError);
+      // Validate frames before sending
+      const validFrames = videoFrames.filter(frame => frame && frame.startsWith('data:image/'));
+      if (validFrames.length === 0) {
+        console.warn('No valid frames extracted, using mock data');
         return {
           success: true,
           data: this.createMockAnalysis(),
         };
       }
+
+      console.log(`Sending ${validFrames.length} valid frames to OpenAI`);
 
       const response = await this.client.chat.completions.create({
         model: 'gpt-4o',
@@ -57,11 +48,11 @@ class OpenAIService {
                 type: 'text',
                 text: EQUIPMENT_ANALYSIS_PROMPT,
               },
-              ...videoFrames.map((frame) => ({
+              ...validFrames.slice(0, 3).map((frame) => ({ // Limit to 3 frames to avoid token limits
                 type: 'image_url' as const,
                 image_url: {
                   url: frame,
-                  detail: 'high' as const,
+                  detail: 'low' as const, // Use low detail to reduce token usage
                 },
               })),
             ],
@@ -71,7 +62,12 @@ class OpenAIService {
         temperature: 0.3,
       });
 
-      const analysis = JSON.parse(response.choices[0].message.content || '{}');
+      const content = response.choices[0].message.content;
+      if (!content) {
+        throw new Error('No content in OpenAI response');
+      }
+
+      const analysis = JSON.parse(content);
       console.log('OpenAI analysis successful:', analysis);
 
       return {
@@ -82,7 +78,7 @@ class OpenAIService {
       console.error('OpenAI Video Analysis Error:', error);
       console.log('Falling back to mock equipment analysis');
       
-      // Return mock data as fallback
+      // Always return mock data as fallback for demo purposes
       return {
         success: true,
         data: this.createMockAnalysis(),
