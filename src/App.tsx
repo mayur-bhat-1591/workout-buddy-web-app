@@ -1,19 +1,18 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { HomeScreen } from './screens/HomeScreen';
+import { EquipmentDetectionScreen } from './screens/EquipmentDetectionScreen';
+import { WorkoutSessionScreen } from './screens/WorkoutSessionScreen';
+import { PersonalTrackerScreen } from './screens/PersonalTrackerScreen';
+import { WorkoutScreen } from './screens/WorkoutScreen';
+import { SplashScreen } from './components/SplashScreen';
+import { WorkoutCompleteScreen } from './components/WorkoutCompleteScreen';
+import { AuthModal } from './components/auth/AuthModal';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import { ProgressProvider } from './contexts/ProgressContext';
-import Navigation from './components/Navigation';
-import SplashScreen from './components/SplashScreen';
-import DemoModeToggle from './components/DemoModeToggle';
-import HomeScreen from './screens/HomeScreen';
-import EquipmentDetectionScreen from './screens/EquipmentDetectionScreen';
-import WorkoutScreen from './screens/WorkoutScreen';
-import WorkoutSessionScreen from './screens/WorkoutSessionScreen';
-import PersonalTrackerScreen from './screens/PersonalTrackerScreen';
-import WorkoutCompleteScreen from './components/WorkoutCompleteScreen';
-import LoadingSpinner from './components/LoadingSpinner';
-import GroqService from './services/GroqService';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { EquipmentAnalysis, WorkoutPlan, UserProfile } from './types';
-import { Toaster } from 'react-hot-toast';
+import { DatabaseService } from './services/DatabaseService';
+import './App.css';
 
 type Screen = 'home' | 'detection' | 'workout' | 'progress' | 'complete' | 'session';
 
@@ -24,16 +23,24 @@ interface WorkoutFlowState {
   completionMessage: string;
 }
 
-const App: React.FC = () => {
-  const [showSplash, setShowSplash] = useState(true);
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
   const [currentScreen, setCurrentScreen] = useState<Screen>('home');
-  const [isGeneratingWorkout, setIsGeneratingWorkout] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [workoutFlowState, setWorkoutFlowState] = useState<WorkoutFlowState>({
     equipmentAnalysis: null,
     workoutPlan: null,
     sessionResult: null,
-    completionMessage: '',
+    completionMessage: ''
   });
+
+  // Migrate localStorage data when user signs in
+  useEffect(() => {
+    if (user && !loading) {
+      DatabaseService.migrateLocalStorageData(user.id);
+    }
+  }, [user, loading]);
 
   // Memoize user profile to prevent unnecessary re-renders
   const defaultUserProfile: UserProfile = useMemo(() => ({
@@ -215,6 +222,14 @@ const App: React.FC = () => {
         </ProgressProvider>
       </WorkoutProvider>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

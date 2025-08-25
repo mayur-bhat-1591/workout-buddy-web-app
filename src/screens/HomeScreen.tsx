@@ -1,23 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Camera, 
-  Play, 
-  BarChart3, 
-  Zap, 
-  Target, 
-  Calendar,
-  Award,
-  TrendingUp,
-  Clock,
-  Flame,
-  Star,
-  ChevronRight,
-  Dumbbell,
-  Trophy,
-  Settings
-} from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
+import { useAuth } from '../contexts/AuthContext';
+import { AuthModal } from '../components/auth/AuthModal';
 import { useUser } from '../contexts/UserContext';
 import { useWorkout } from '../contexts/WorkoutContext';
 import { format } from 'date-fns';
