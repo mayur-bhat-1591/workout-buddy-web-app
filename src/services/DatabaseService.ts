@@ -187,6 +187,85 @@ export class DatabaseService {
     return this.getDailyProgress(userId, startDate, endDate);
   }
 
+  // Get public workout programs
+  static async getWorkoutPrograms(): Promise<{ success: boolean; data?: any[]; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('workout_programs')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return { success: true, data: data || [] };
+    } catch (error) {
+      console.error('Error fetching workout programs:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Get program templates
+  static async getProgramTemplates(programId: string): Promise<{ success: boolean; data?: any[]; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('workout_templates')
+        .select(`
+          *,
+          exercises:workout_template_exercises(
+            exercise_order,
+            sets,
+            reps,
+            rest_seconds,
+            notes,
+            exercise:exercises(*)
+          )
+        `)
+        .eq('program_id', programId)
+        .order('week_number', { ascending: true })
+        .order('day_number', { ascending: true });
+
+      if (error) throw error;
+      return { success: true, data: data || [] };
+    } catch (error) {
+      console.error('Error fetching program templates:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Create workout program
+  static async createWorkoutProgram(program: any): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('workout_programs')
+        .insert([program])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error creating workout program:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Create workout template
+  static async createWorkoutTemplate(template: any): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('workout_templates')
+        .insert([template])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error creating workout template:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
   // Migration helper to move localStorage data to database
   static async migrateLocalStorageData(userId: string) {
     try {

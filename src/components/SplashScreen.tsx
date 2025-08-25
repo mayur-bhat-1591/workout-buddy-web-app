@@ -18,12 +18,23 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   ];
 
   useEffect(() => {
+    // Check if this is the first visit
+    const hasVisited = localStorage.getItem('workoutBuddyHasVisited');
+    
+    if (hasVisited) {
+      // Skip splash screen for returning users
+      onComplete();
+      return;
+    }
+
     const timer = setTimeout(() => {
       if (currentStep < steps.length - 1) {
         setCurrentStep(prev => prev + 1);
       } else {
         setTimeout(() => {
           setIsVisible(false);
+          // Mark as visited
+          localStorage.setItem('workoutBuddyHasVisited', 'true');
           setTimeout(onComplete, 800);
         }, 1500);
       }

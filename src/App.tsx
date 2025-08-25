@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { HomeScreen } from './screens/HomeScreen';
-import { EquipmentDetectionScreen } from './screens/EquipmentDetectionScreen';
-import { WorkoutSessionScreen } from './screens/WorkoutSessionScreen';
-import { PersonalTrackerScreen } from './screens/PersonalTrackerScreen';
-import { WorkoutScreen } from './screens/WorkoutScreen';
-import { SplashScreen } from './components/SplashScreen';
-import { WorkoutCompleteScreen } from './components/WorkoutCompleteScreen';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import HomeScreen from './screens/HomeScreen';
+import EquipmentDetectionScreen from './screens/EquipmentDetectionScreen';
+import WorkoutSessionScreen from './screens/WorkoutSessionScreen';
+import PersonalTrackerScreen from './screens/PersonalTrackerScreen';
+import WorkoutScreen from './screens/WorkoutScreen';
+import SplashScreen from './components/SplashScreen';
+import WorkoutCompleteScreen from './components/WorkoutCompleteScreen';
+import ProgramsScreen from './screens/ProgramsScreen';
 import { AuthModal } from './components/auth/AuthModal';
 import { WorkoutProvider } from './contexts/WorkoutContext';
 import { ProgressProvider } from './contexts/ProgressContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { EquipmentAnalysis, WorkoutPlan, UserProfile } from './types';
 import { DatabaseService } from './services/DatabaseService';
-import './App.css';
 
-type Screen = 'home' | 'detection' | 'workout' | 'progress' | 'complete' | 'session';
+type Screen = 'home' | 'detection' | 'workout' | 'progress' | 'complete' | 'session' | 'programs';
 
 interface WorkoutFlowState {
   equipmentAnalysis: EquipmentAnalysis | null;
@@ -88,16 +88,6 @@ const AppContent: React.FC = () => {
   }, []);
 
   const renderCurrentScreen = () => {
-    if (isGeneratingWorkout) {
-      return (
-        <div className="min-h-screen flex items-center justify-center">
-          <LoadingSpinner 
-            size="large" 
-            text="Generating your personalized workout plan..." 
-          />
-        </div>
-      );
-    }
 
     console.log('🖥️ Rendering screen:', currentScreen);
     
@@ -150,19 +140,16 @@ const AppContent: React.FC = () => {
       case 'progress':
         return <PersonalTrackerScreen onNavigate={handleNavigate} />;
       
+      case 'programs':
+        return <ProgramsScreen onNavigate={handleNavigate} />;
+      
       case 'complete':
         return (
-          <WorkoutCompleteScreen
-            sessionResult={workoutFlowState.sessionResult || {
-              completed: true,
-              audioPlaybackMinutes: 45,
-              targetMinutes: 45,
-              completionPercentage: 100,
-              date: new Date().toISOString().split('T')[0]
-            }}
-            completionMessage={workoutFlowState.completionMessage || 'Great workout!'}
-            onContinue={handleContinueFromComplete}
+          <WorkoutCompleteScreen 
+            sessionResult={workoutFlowState.sessionResult}
+            completionMessage={workoutFlowState.completionMessage}
             onNavigate={handleNavigate}
+            onContinue={handleContinueFromComplete}
           />
         );
       
@@ -183,41 +170,10 @@ const AppContent: React.FC = () => {
             {renderCurrentScreen()}
           </main>
           
-          {/* Navigation - hidden during workout session and completion screen */}
-          {!['session', 'complete'].includes(currentScreen) && (
-            <Navigation 
-              currentScreen={currentScreen} 
-              onNavigate={handleNavigate} 
-            />
-          )}
-
-          {/* Demo Mode Toggle */}
-          <DemoModeToggle />
-
-          {/* Toast notifications */}
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#333',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#22c55e',
-                  secondary: '#fff',
-                },
-              },
-              error: {
-                duration: 5000,
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
-                },
-              },
-            }}
+          {/* Authentication Modal */}
+          <AuthModal 
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
           />
         </ProgressProvider>
       </WorkoutProvider>

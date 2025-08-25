@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { Play, Camera, BarChart3, Settings, User, LogOut, LogIn } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useWorkout } from '../contexts/WorkoutContext';
 import { useProgress } from '../contexts/ProgressContext';
 import { useAuth } from '../contexts/AuthContext';
 import { AuthModal } from '../components/auth/AuthModal';
-import { useUser } from '../contexts/UserContext';
-import { useWorkout } from '../contexts/WorkoutContext';
+import { Dumbbell, Trophy, Target, Clock, BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
 
 const getStreakText = (streak: number) => {
   if (streak === 0) return "Start your journey!";
-  if (streak === 1) return "Great start! 🎯";
+  if (streak === 1) return "Great start! ";
+  if (streak < 7) return `${streak} day streak! `;
+  if (streak < 14) return `${streak} day streak! Amazing! `;
+  return `${streak} day streak! Unstoppable! `;
   if (streak < 7) return `${streak} day streak! 🔥`;
   if (streak < 14) return `${streak} day streak! Amazing! 🚀`;
   return `${streak} day streak! Unstoppable! 💪`;
@@ -28,6 +33,8 @@ interface HomeScreenProps {
 const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
   const { userStats, isLoading } = useProgress();
   const { equipmentAnalysis } = useWorkout();
+  const { user, signOut } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const quickStats = {
     currentStreak: userStats.currentStreak,
@@ -81,9 +88,33 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
               <Dumbbell className="text-white" size={28} />
             </div>
           </motion.div>
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Ready to move?
-          </h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-4xl font-bold text-white">
+              Ready to move?
+            </h1>
+            
+            {/* Authentication Button */}
+            <motion.button
+              onClick={() => user ? signOut() : setShowAuthModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {user ? (
+                <>
+                  <User size={20} />
+                  <span className="hidden sm:inline">{user.email}</span>
+                  <LogOut size={16} />
+                </>
+              ) : (
+                <>
+                  <LogIn size={20} />
+                  <span>Sign In</span>
+                </>
+              )}
+            </motion.button>
+          </div>
+          
           <motion.div
             className="text-xl text-blue-300 font-medium"
             animate={{ opacity: [0.7, 1, 0.7] }}
@@ -216,6 +247,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
           transition={{ duration: 0.6, delay: 0.9 }}
         >
           <motion.button
+            onClick={() => onNavigate('programs')}
+            className="bg-gradient-to-br from-slate-700/50 to-slate-600/50 backdrop-blur-lg border border-slate-500/30 rounded-xl p-4 text-white hover:border-slate-400/50 transition-all duration-300"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen size={24} className="text-purple-400" />
+              <span className="font-medium">Browse Programs</span>
+            </div>
+          </motion.button>
+          <motion.button
             onClick={() => onNavigate('progress')}
             className="bg-gradient-to-br from-slate-700/50 to-slate-600/50 backdrop-blur-lg border border-slate-500/30 rounded-xl p-4 text-white hover:border-slate-400/50 transition-all duration-300"
             whileHover={{ scale: 1.02 }}
@@ -226,20 +268,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onNavigate }) => {
               <span className="font-medium">View Progress</span>
             </div>
           </motion.button>
-
-          <motion.button
-            onClick={() => onNavigate('detection')}
-            className="bg-gradient-to-br from-slate-700/50 to-slate-600/50 backdrop-blur-lg border border-slate-500/30 rounded-xl p-4 text-white hover:border-slate-400/50 transition-all duration-300"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="flex items-center gap-3">
-              <Settings size={24} className="text-green-400" />
-              <span className="font-medium">Setup Equipment</span>
-            </div>
-          </motion.button>
         </motion.div>
       </div>
+
+      {/* Authentication Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 };

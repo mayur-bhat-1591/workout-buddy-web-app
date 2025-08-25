@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Trophy, Flame, Target, TrendingUp, Clock, CheckCircle, ArrowLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, TrendingUp, Target, Clock, Award, BarChart3, ArrowLeft, Activity } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
+import { useAuth } from '../contexts/AuthContext';
+import ActivityTracker from '../components/ActivityTracker';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isSameDay } from 'date-fns';
 import { getCurrentWeek, getCalendarMonth, formatDate, isDateCompleted, getDayOfWeek, getStreakText, getWeeklyProgressText } from '../utils/dateUtils';
 import { format, isSameMonth, isToday, isSameDay } from 'date-fns';
 
@@ -10,7 +14,9 @@ interface PersonalTrackerScreenProps {
 
 const PersonalTrackerScreen: React.FC<PersonalTrackerScreenProps> = ({ onNavigate }) => {
   const { dailyProgress, userStats, isLoading } = useProgress();
+  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState<'overview' | 'activities'>('overview');
   const [viewType, setViewType] = useState<'week' | 'month'>('week');
 
   const completedDates = Object.keys(dailyProgress).filter(date => dailyProgress[date].completed);
