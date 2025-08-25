@@ -11,12 +11,14 @@ interface WorkoutCompleteScreenProps {
   };
   completionMessage: string;
   onContinue: () => void;
+  onNavigate: (screen: string) => void;
 }
 
 const WorkoutCompleteScreen: React.FC<WorkoutCompleteScreenProps> = ({
   sessionResult,
   completionMessage,
   onContinue,
+  onNavigate,
 }) => {
   const isGoalAchieved = sessionResult.completed;
 
@@ -134,21 +136,24 @@ const WorkoutCompleteScreen: React.FC<WorkoutCompleteScreenProps> = ({
       )}
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="flex flex-col sm:flex-row gap-4">
         <button
-          onClick={onContinue}
-          className="btn-primary flex items-center justify-center gap-2"
+          onClick={() => onNavigate('home')}
+          className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
-          <Calendar size={20} />
-          View Progress Tracker
-          <ArrowRight size={16} />
+          🏠 Home
         </button>
-        
         <button
-          onClick={() => window.location.reload()}
-          className="btn-secondary"
+          onClick={() => onNavigate('progress')}
+          className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
-          Start New Workout
+          📊 View Progress
+        </button>
+        <button
+          onClick={() => onNavigate('workout')}
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+        >
+          🔄 New Workout
         </button>
       </div>
 

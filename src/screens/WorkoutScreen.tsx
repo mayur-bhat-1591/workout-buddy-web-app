@@ -28,6 +28,7 @@ const WorkoutScreen: React.FC<WorkoutScreenProps> = ({
   const { userStats } = useProgress();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
 
   // Default user profile for workout generation
   const defaultUserProfile: UserProfile = {
@@ -68,7 +69,8 @@ const WorkoutScreen: React.FC<WorkoutScreenProps> = ({
       if (workoutResponse.success) {
         console.log('✅ Workout plan generated:', workoutResponse.data);
         onWorkoutPlanReady(workoutResponse.data);
-        onNavigate('session');
+        // Stay on workout screen to show the generated plan
+        setWorkoutPlan(workoutResponse.data);
       } else {
         setError('Failed to generate workout plan. Please try again.');
         console.error('❌ Workout generation failed:', workoutResponse.error);
@@ -308,6 +310,60 @@ const WorkoutScreen: React.FC<WorkoutScreenProps> = ({
             <p className="text-gray-300">
               AI is creating a personalized workout plan just for you...
             </p>
+          </motion.div>
+        )}
+
+        {/* Workout Plan Display */}
+        {workoutPlan && !isGenerating && (
+          <motion.div 
+            className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-lg border border-green-500/30 rounded-2xl p-8"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-green-300 mb-2">
+                🎯 Your Workout Plan is Ready!
+              </h3>
+              <p className="text-gray-300">
+                {workoutPlan.totalDuration} minutes • {workoutPlan.segments.length} exercises
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-slate-800/50 rounded-xl p-4">
+                <h4 className="font-semibold text-white mb-2">Exercises:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {workoutPlan.segments.map((segment, index) => (
+                    <span key={index} className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm">
+                      {segment.exercise}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="bg-slate-800/50 rounded-xl p-4">
+                <h4 className="font-semibold text-white mb-2">Focus Areas:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {workoutPlan.focus_areas.map((area: string, index: number) => (
+                    <span key={index} className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm">
+                      {area}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <motion.button
+              onClick={() => onNavigate('session')}
+              className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-xl text-xl shadow-lg transition-all duration-300"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="flex items-center justify-center gap-3">
+                <Play size={24} />
+                Start Audio Workout Session
+              </div>
+            </motion.button>
           </motion.div>
         )}
 

@@ -155,6 +155,7 @@ const App: React.FC = () => {
             }}
             completionMessage={workoutFlowState.completionMessage || 'Great workout!'}
             onContinue={handleContinueFromComplete}
+            onNavigate={handleNavigate}
           />
         );
       

@@ -265,6 +265,10 @@ const EquipmentDetectionScreen: React.FC<EquipmentDetectionScreenProps> = ({
     setEquipmentAnalysis(manualAnalysis);
     onEquipmentAnalyzed(manualAnalysis);
     clearError();
+    // Navigate to workout screen to show the plan
+    if (onNavigate) {
+      onNavigate('workout');
+    }
   };
 
   const handleQuickTest = () => {
