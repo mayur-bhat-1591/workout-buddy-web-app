@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, TrendingUp, Target, Clock, Award, BarChart3, ArrowLeft, Activity } from 'lucide-react';
+import { Calendar, TrendingUp, Target, Clock, Award, BarChart3, ArrowLeft, Activity, CheckCircle, Flame, Trophy } from 'lucide-react';
 import { useProgress } from '../contexts/ProgressContext';
 import { useAuth } from '../contexts/AuthContext';
 import ActivityTracker from '../components/ActivityTracker';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isSameDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isSameDay, isSameMonth } from 'date-fns';
 import { getCurrentWeek, getCalendarMonth, formatDate, isDateCompleted, getDayOfWeek, getStreakText, getWeeklyProgressText } from '../utils/dateUtils';
-import { format, isSameMonth, isToday, isSameDay } from 'date-fns';
 
 interface PersonalTrackerScreenProps {
   onNavigate?: (screen: string) => void;
